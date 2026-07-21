@@ -64,12 +64,16 @@ const registerUser = async (req, res) => {
     // --- TASK 4 REGIONAL ROUTING LOGIC ---
     if (isSouth) {
       const message = `Hello ${name},\n\nWelcome to Elevance Streaming! Your South-Region verification OTP is: ${otp}\n\nDo not share this with anyone. Valid for 10 minutes.`;
-      
-      await sendEmail({
-        email: user.email,
-        subject: "Elevance Platform - Secure Email OTP Verification",
-        message,
-      });
+
+      try {
+        await sendEmail({
+          email: user.email,
+          subject: "Elevance Platform - Secure Email OTP Verification",
+          message,
+        });
+      } catch (err) {
+        console.log("Email blocked by Render, OTP is in logs");
+      }
 
       return res.status(201).json({
         success: true,
@@ -79,7 +83,6 @@ const registerUser = async (req, res) => {
         authMethod: "Email",
         mockedOtpDevOnly: process.env.NODE_ENV !== "production" ? otp : undefined,
       });
-
     } else {
       await sendSms({ mobile, message: `Elevance Streaming OTP is ${otp}. Valid for 10 minutes.` });
 
