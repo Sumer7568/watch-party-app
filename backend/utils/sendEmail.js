@@ -24,8 +24,9 @@ const sendEmail = async (options) => {
     console.log(`[Email Dispatcher] Email delivered successfully to: ${options.email} (MessageID: ${info.messageId})`);
     return info;
   } catch (error) {
-    console.error(`[Email Failed]: Please check credentials in .env. Error: ${error.message}`);
-    throw error;
+    console.log("Email blocked by Render, OTP is in logs");
+    console.error(`[Email Failed Details]: ${error.message}`);
+    return null;
   }
 };
 
