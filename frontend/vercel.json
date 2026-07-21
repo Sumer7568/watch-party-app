@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:match*",
+      "destination": "https://watch-party-backend-1sda.onrender.com/api/:match*"
+    }
+  ]
+}
