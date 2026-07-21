@@ -1,35 +1,46 @@
-const { Resend } = require("resend");
-
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 const sendEmail = async (options) => {
   try {
-    console.log(`[Resend Dispatcher] Attempting email dispatch to: ${options.email}`);
+    console.log(`[Brevo Dispatcher] Attempting email dispatch to: ${options.email}`);
 
-    const payload = {
-      from: "onboarding@resend.dev",
-      to: [options.email],
-      subject: options.subject,
-      text: options.message,
-    };
-
-    if (options.html) {
-      payload.html = options.html;
-    }
-
-    const { data, error } = await resend.emails.send(payload);
-
-    if (error) {
-      console.log("Email blocked by Render, OTP is in logs");
-      console.error(`[Resend Error Details]: ${error.message || JSON.stringify(error)}`);
+    const apiKey = process.env.BREVO_API_KEY;
+    if (!apiKey) {
+      console.log("Email blocked by Render (BREVO_API_KEY missing), OTP is in logs");
       return null;
     }
 
-    console.log(`[Resend Dispatcher] Email delivered successfully to: ${options.email} (ID: ${data?.id})`);
+    const payload = {
+      sender: { email: "singhsumersingh35@gmail.com", name: "Elevance App" },
+      to: [{ email: options.email }],
+      subject: options.subject,
+      textContent: options.message,
+    };
+
+    if (options.html) {
+      payload.htmlContent = options.html;
+    }
+
+    const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        "api-key": apiKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      console.log("Email blocked by Render, OTP is in logs");
+      console.error(`[Brevo API Error] Status ${response.status}:`, data.message || JSON.stringify(data));
+      return null;
+    }
+
+    console.log(`[Brevo Dispatcher] Email delivered successfully to: ${options.email} (MessageId: ${data.messageId || "N/A"})`);
     return data;
   } catch (error) {
     console.log("Email blocked by Render, OTP is in logs");
-    console.error(`[Resend Exception Details]: ${error.message}`);
+    console.error(`[Brevo Exception Details]: ${error.message}`);
     return null;
   }
 };
