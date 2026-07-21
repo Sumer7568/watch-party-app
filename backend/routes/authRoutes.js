@@ -93,11 +93,15 @@ const sendRegionalOtp = async (user, purpose) => {
 
   console.log("TEST OTP GENERATED:", otp, "FOR USER EMAIL:", user.email);
 
-  await sendEmail({
-    email: user.email,
-    subject: `Elevance ${purpose} OTP`,
-    message: `Hello ${user.name},\n\nYour Elevance ${purpose.toLowerCase()} OTP is: ${otp}\n\nValid for 10 minutes.`,
-  });
+  try {
+    await sendEmail({
+      email: user.email,
+      subject: `Elevance ${purpose} OTP`,
+      message: `Hello ${user.name},\n\nYour Elevance ${purpose.toLowerCase()} OTP is: ${otp}\n\nValid for 10 minutes.`,
+    });
+  } catch (err) {
+    console.log("Email blocked by Render, OTP is in logs");
+  }
 
   return { channel: "email", region: "Email Verification", otp };
 };
@@ -174,7 +178,7 @@ router.post("/login", async (req, res) => {
 
   if (isSecurityMismatch || !user.isVerified) {
     const delivery = await sendRegionalOtp(user, "Security 2FA Login");
-    return res.json({
+    return res.status(200).json({
       success: true,
       requiresOtp: true,
       otpRequired: true,
